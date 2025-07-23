@@ -70,6 +70,9 @@ MD.AnkiIntegration = function() {
         // 重写保存功能
         this.overrideSaveFunction();
         
+        // 重写导出功能
+        this.overrideExportFunction();
+        
         // 添加全局函数供 Anki 调用
         window.ankiAddonSetImg = this.setImage.bind(this);
         window.ankiAddonSaveImg = this.saveImage.bind(this);
@@ -173,6 +176,122 @@ MD.AnkiIntegration = function() {
         };
         
         this.log("Save function overridden for Anki integration");
+    };
+    
+    /**
+     * 重写导出功能
+     */
+    this.overrideExportFunction = function() {
+        // 保存原始的 exportHandler
+        const originalExportHandler = editor.exportHandler;
+        
+        // 创建新的 exportHandler
+        const ankiExportHandler = (window, data) => {
+            this.log("Export handler called with data:", data);
+            if (this.isAnkiEnv) {
+                this.exportToPNG(data);
+            } else if (originalExportHandler) {
+                originalExportHandler.call(editor, window, data);
+            }
+        };
+        
+        // 替换 editor.exportHandler
+        editor.exportHandler = ankiExportHandler;
+        
+        // 重新绑定事件（关键！）
+        svgCanvas.bind("exported", ankiExportHandler);
+        
+        this.log("Export function overridden for Anki integration");
+    };
+    
+    /**
+     * 导出为 PNG 并保存到 Anki
+     */
+    this.exportToPNG = function(data) {
+        this.log("exportToPNG called");
+        const issues = data.issues;
+        
+        // 显示任何问题
+        if (issues && issues.length > 0) {
+            this.log("Export issues:", issues);
+        }
+        
+        // 创建隐藏的 canvas
+        if (!$('#export_canvas').length) {
+            $('<canvas>', {id: 'export_canvas'}).hide().appendTo('body');
+        }
+        const c = $('#export_canvas')[0];
+        
+        c.width = svgCanvas.contentW;
+        c.height = svgCanvas.contentH;
+        
+        this.log(`Canvas size: ${c.width}x${c.height}`);
+        
+        // 检查 canvg 是否可用
+        if (typeof window.canvg === 'undefined' && typeof canvg === 'undefined') {
+            this.log("Error: canvg is not defined!");
+            alert("无法导出 PNG：canvg 库未加载");
+            return;
+        }
+        
+        // 使用全局 canvg 函数
+        const canvgFn = window.canvg || canvg;
+        
+        try {
+            // 使用 canvg 渲染 SVG 到 canvas
+            canvgFn(c, data.svg, {
+                renderCallback: () => {
+                    this.log("canvg render complete");
+                    
+                    // 获取 PNG data URI
+                    // 为了减小文件大小，如果图像很大，我们可以适当缩小
+                    let datauri;
+                    const maxSize = 1200; // 最大边长
+                    
+                    if (c.width > maxSize || c.height > maxSize) {
+                        // 需要缩小
+                        const scale = Math.min(maxSize / c.width, maxSize / c.height);
+                        const newWidth = Math.floor(c.width * scale);
+                        const newHeight = Math.floor(c.height * scale);
+                        
+                        const tempCanvas = document.createElement('canvas');
+                        tempCanvas.width = newWidth;
+                        tempCanvas.height = newHeight;
+                        const tempCtx = tempCanvas.getContext('2d');
+                        
+                        // 使用高质量缩放
+                        tempCtx.imageSmoothingEnabled = true;
+                        tempCtx.imageSmoothingQuality = 'high';
+                        
+                        // 绘制缩小的图像
+                        tempCtx.drawImage(c, 0, 0, c.width, c.height, 0, 0, newWidth, newHeight);
+                        
+                        datauri = tempCanvas.toDataURL('image/png');
+                        this.log(`Image resized from ${c.width}x${c.height} to ${newWidth}x${newHeight}`);
+                    } else {
+                        // 不需要缩小
+                        datauri = c.toDataURL('image/png');
+                    }
+                    
+                    if (!datauri) {
+                        this.log("Failed to create data URI");
+                        alert("无法创建图像数据");
+                        return;
+                    }
+                    
+                    this.log("PNG data URI created, length:", datauri ? datauri.length : 0);
+                    
+                    // 发送到 Anki
+                    // 注意：data URI 可能很大，我们需要确保能传输
+                    pycmd("png_save:" + datauri);
+                    
+                    this.log("PNG data sent to Anki");
+                }
+            });
+        } catch (e) {
+            this.log("Error in canvg:", e);
+            alert("导出 PNG 时出错：" + e.message);
+        }
     };
     
     /**

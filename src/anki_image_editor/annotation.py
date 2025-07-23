@@ -90,6 +90,12 @@ class AnnotateDialog(QDialog):
         okButton = QPushButton("Save")
         okButton.clicked.connect(self.save)
         btnLayout.addWidget(okButton)
+        
+        exportButton = QPushButton("Export")
+        exportButton.clicked.connect(self.export_png)
+        exportButton.setToolTip("Export as PNG")
+        btnLayout.addWidget(exportButton)
+        
         cancelButton = QPushButton("Discard")
         cancelButton.clicked.connect(self.discard)
         btnLayout.addWidget(cancelButton)
@@ -128,6 +134,40 @@ class AnnotateDialog(QDialog):
 
     def reset(self):
         self.load_img()
+    
+    def export_png(self):
+        """触发 PNG 导出"""
+        # 触发导出 - 模拟点击菜单项
+        self.web.eval("""
+            console.log('Export button clicked');
+            
+            // 尝试多种方式访问 svgCanvas
+            var canvas = window.svgCanvas || svgCanvas || (editor && editor.canvas);
+            
+            if (canvas) {
+                console.log('Canvas found:', canvas);
+                
+                // 直接调用导出功能 - 模拟菜单点击
+                var exportMenuItem = document.getElementById('tool_export');
+                if (exportMenuItem) {
+                    console.log('Clicking export menu item');
+                    exportMenuItem.click();
+                } else {
+                    console.log('Export menu item not found, trying direct call');
+                    // 如果找不到菜单项，尝试直接调用
+                    if (typeof canvas.rasterExport === 'function') {
+                        canvas.rasterExport();
+                    } else {
+                        console.error('rasterExport function not found');
+                    }
+                }
+            } else {
+                console.log('Canvas not found in any location');
+                console.log('window.svgCanvas:', window.svgCanvas);
+                console.log('typeof svgCanvas:', typeof svgCanvas);
+                console.log('editor:', typeof editor !== 'undefined' ? editor : 'undefined');
+            }
+        """)
 
     def on_bridge_cmd(self, cmd):
         if cmd == "img_src":
@@ -141,6 +181,11 @@ class AnnotateDialog(QDialog):
             else:
                 svg_str = cmd[len("svg_save:") :]
                 self.save_svg(svg_str)
+                
+        elif cmd.startswith("png_save:"):
+            png_data = cmd[len("png_save:") :]
+            tooltip(f"收到 PNG 数据，长度: {len(png_data)}")
+            self.save_png(png_data)
 
     def check_editor_image_selected(self):
         def check_image_selected(selected):
@@ -404,3 +449,66 @@ class AnnotateDialog(QDialog):
             
         except Exception as e:
             raise AnkiException(f"批量替换失败: {str(e)}")
+    
+    def save_png(self, png_data_uri):
+        """保存 PNG 图像并替换当前编辑的图像"""
+        try:
+            if not mw.col:
+                showWarning("集合未加载")
+                return
+            
+            # 解析 data URI
+            # 格式: data:image/png;base64,iVBORw0KGgoAAAA...
+            if not png_data_uri.startswith("data:image/png;base64,"):
+                showWarning("无效的 PNG 数据格式")
+                return
+            
+            # 提取 base64 数据
+            base64_data = png_data_uri.split(",", 1)[1]
+            
+            # 解码 base64 为二进制数据
+            png_binary = base64.b64decode(base64_data)
+            
+            # 生成文件名
+            if hasattr(self, 'image_name') and self.image_name:
+                # 基于原文件名生成新文件名
+                base_name = self.image_name.rsplit('.', 1)[0]
+                base_name = base_name[:15] if len(base_name) > 15 else base_name
+                # 清理文件名
+                base_name = base_name.replace(" ", "_").replace('"', "").replace("$", "")
+                desired_name = f"{base_name}_exported.png"
+            else:
+                # 使用时间戳生成唯一文件名
+                import time
+                timestamp = int(time.time())
+                desired_name = f"image_export_{timestamp}.png"
+            
+            # 保存到媒体文件夹
+            new_name = mw.col.media.write_data(desired_name, png_binary)
+            
+            # 更新编辑器中的图像
+            if not self.create_new:
+                # 替换现有图像
+                if self.replaceAll.checkState() == Qt.CheckState.Checked:
+                    # 替换所有相同的图像
+                    self.replace_all_img_src_modern(self.image_name, new_name)
+                else:
+                    # 只替换当前选中的图像
+                    img_el_b64 = base64.b64encode(new_name.encode()).decode()
+                    change_src_script = f"addonAnno.changeSrc('{img_el_b64}');"
+                    self.editor_wv.eval(change_src_script)
+            else:
+                # 插入新图像
+                img_el = f'"<img src=\\"{new_name}\\">"'
+                write_image_script = f"document.execCommand('inserthtml', false, {img_el});"
+                self.editor_wv.eval(write_image_script)
+            
+            # 显示成功消息
+            tooltip(f"PNG 图像已保存: {new_name}")
+            
+            # 关闭编辑器
+            self.close_queued = True
+            self.close()
+            
+        except Exception as e:
+            showWarning(f"保存 PNG 失败: {str(e)}")
