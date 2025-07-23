@@ -37,22 +37,18 @@ state.set("canvasMode", state.get("canvasMode"));
 // load from param
 if (!window.location.search.includes("?load=")) {
   svgCanvas.setSvgString(state.get("canvasContent"));
-}
-else {
-  
-  const error = function(err) {
-      console.log(err);
-      svgCanvas.setSvgString(state.get("canvasContent"));
-  }
-
+} else {
   const url = utils.findGetParameter("load");
   fetch(url)
     .then(r => r.text())
     .then(text => {
-      if (text.includes("Error response")) return error("Error response");
+      if (text.includes("Error response")) throw new Error("Error response");
       svgCanvas.setSvgString(text);
     })
-    .catch(error);
+    .catch(err => {
+      console.log(err);
+      svgCanvas.setSvgString(state.get("canvasContent"));
+    });
 }
 
 state.set("canvasTitle", svgCanvas.getDocumentTitle());

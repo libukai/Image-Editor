@@ -137,37 +137,7 @@ class AnnotateDialog(QDialog):
     
     def export_png(self):
         """触发 PNG 导出"""
-        # 触发导出 - 模拟点击菜单项
-        self.web.eval("""
-            console.log('Export button clicked');
-            
-            // 尝试多种方式访问 svgCanvas
-            var canvas = window.svgCanvas || svgCanvas || (editor && editor.canvas);
-            
-            if (canvas) {
-                console.log('Canvas found:', canvas);
-                
-                // 直接调用导出功能 - 模拟菜单点击
-                var exportMenuItem = document.getElementById('tool_export');
-                if (exportMenuItem) {
-                    console.log('Clicking export menu item');
-                    exportMenuItem.click();
-                } else {
-                    console.log('Export menu item not found, trying direct call');
-                    // 如果找不到菜单项，尝试直接调用
-                    if (typeof canvas.rasterExport === 'function') {
-                        canvas.rasterExport();
-                    } else {
-                        console.error('rasterExport function not found');
-                    }
-                }
-            } else {
-                console.log('Canvas not found in any location');
-                console.log('window.svgCanvas:', window.svgCanvas);
-                console.log('typeof svgCanvas:', typeof svgCanvas);
-                console.log('editor:', typeof editor !== 'undefined' ? editor : 'undefined');
-            }
-        """)
+        self.web.eval("document.getElementById('tool_export').click()")
 
     def on_bridge_cmd(self, cmd):
         if cmd == "img_src":
@@ -183,20 +153,16 @@ class AnnotateDialog(QDialog):
                 self.save_svg(svg_str)
                 
         elif cmd.startswith("png_save:"):
-            png_data = cmd[len("png_save:") :]
-            tooltip(f"收到 PNG 数据，长度: {len(png_data)}")
-            self.save_png(png_data)
+            self.save_png(cmd[len("png_save:") :])
 
     def check_editor_image_selected(self):
-        def check_image_selected(selected):
-            if selected == False:
-                self.close_queued = True
-                self.close()
-                tooltip("Image wasn't selected properly.\nPlease try again.")
-
-        # Check if image is properly selected
         self.editor_wv.evalWithCallback(
-            "addonAnno.imageIsSelected()", check_image_selected
+            "addonAnno.imageIsSelected()",
+            lambda selected: (
+                setattr(self, 'close_queued', True),
+                self.close(),
+                tooltip("Image wasn't selected properly.\nPlease try again.")
+            ) if not selected else None
         )
 
     def load_img(self):
@@ -300,13 +266,8 @@ class AnnotateDialog(QDialog):
                 
             image_path = self.image_path.resolve().as_posix()
             img_name = self.image_name
-            desired_name = ".".join(img_name.split(".")[:-1])
-            desired_name = desired_name[:15] if len(desired_name) > 15 else desired_name
-            desired_name += ".svg"
-            # remove whitespace and double quote as it messes with replace_all_img_src
-            desired_name = desired_name.replace(" ", "").replace('"', "").replace("$", "")
-            if not desired_name:
-                desired_name = "blank"
+            base_name = ".".join(img_name.split(".")[:-1])[:15]
+            desired_name = f"{base_name}.svg".replace(" ", "").replace('"', "").replace("$", "") or "blank.svg"
                 
             # 现代化媒体写入
             new_name = mw.col.media.write_data(desired_name, svg_str.encode("utf-8"))
@@ -316,9 +277,7 @@ class AnnotateDialog(QDialog):
                     self.replace_img_src_webview(new_name, replace_all=True)
                     self.replace_all_img_src_modern(img_name, new_name)
                 else:
-                    # 现代化保存模式
                     def save_and_replace(col: Collection) -> OpChanges:
-                        # 保存编辑器内容
                         if hasattr(self.editor, 'saveNow'):
                             self.editor.saveNow(lambda: None)
                         return self.replace_all_img_src_operation(col, img_name, new_name)
@@ -391,9 +350,7 @@ class AnnotateDialog(QDialog):
         ).run_in_background()
         
     def on_replace_success(self, changes: OpChangesWithCount, new_name: str):
-        """替换成功回调"""
-        count = getattr(changes, 'count', 0)
-        tooltip(f"已修改 {count} 个笔记中的图像", parent=self.editor.widget)
+        tooltip(f"已修改 {getattr(changes, 'count', 0)} 个笔记中的图像", parent=self.editor.widget)
 
     def replace_all_img_src_operation(self, col: Collection, orig_name: str, new_name: str) -> OpChangesWithCount:
         """现代化的批量替换操作 - CollectionOp内部执行"""
@@ -403,29 +360,19 @@ class AnnotateDialog(QDialog):
             
             # re.escape isn't compatible with rust regex
             to_escape = r"\.+*?()|[]{}^$#&-~"
-            escaped_name = ""
-            for i, char in enumerate(orig_name):
-                if char in to_escape:
-                    escaped_name += "\\"
-                escaped_name += char
-            orig_name = escaped_name
+            orig_name = "".join(f"\\{char}" if char in to_escape else char for char in orig_name)
             
-            # 现代化搜索
+            # 搜索包含图片的笔记
             n = col.find_notes("<img")
             
-            # src element quoted case
-            reg1 = r"""(?P<first><img[^>]* src=)(?:"{name}")|(?:'{name}')(?P<second>[^>]*>)""".format(
-                name=orig_name
-            )
-            # unquoted case
-            reg2 = r"""(?P<first><img[^>]* src=){name}(?P<second>(?: [^>]*>)|>)""".format(
-                name=orig_name
-            )
-            img_regs = [reg1]
+            # 构建正则表达式
+            img_regs = [
+                rf'(?P<first><img[^>]* src=)(?:"{orig_name}")|(?:\'{orig_name}\')(?P<second>[^>]*>)'
+            ]
             if " " not in orig_name:
-                img_regs.append(reg2)
+                img_regs.append(rf'(?P<first><img[^>]* src=){orig_name}(?P<second>(?: [^>]*>)|>)')
             
-            repl = """${first}"%s"${second}""" % new_name
+            repl = f'${{first}}"{new_name}"${{second}}'
             
             replaced_cnt = 0
             for reg in img_regs:
@@ -439,11 +386,9 @@ class AnnotateDialog(QDialog):
                 )
                 replaced_cnt += res.count
                 
-            # 合并撤销点
-            changes = col.merge_undo_entries(pos)
-            # 创建带计数的结果
+            # 合并撤销点并返回结果
             result = OpChangesWithCount()
-            result.CopyFrom(changes)
+            result.CopyFrom(col.merge_undo_entries(pos))
             result.count = replaced_cnt
             return result
             
@@ -457,56 +402,34 @@ class AnnotateDialog(QDialog):
                 showWarning("集合未加载")
                 return
             
-            # 解析 data URI
-            # 格式: data:image/png;base64,iVBORw0KGgoAAAA...
             if not png_data_uri.startswith("data:image/png;base64,"):
                 showWarning("无效的 PNG 数据格式")
                 return
             
-            # 提取 base64 数据
-            base64_data = png_data_uri.split(",", 1)[1]
-            
-            # 解码 base64 为二进制数据
-            png_binary = base64.b64decode(base64_data)
+            png_binary = base64.b64decode(png_data_uri.split(",", 1)[1])
             
             # 生成文件名
             if hasattr(self, 'image_name') and self.image_name:
-                # 基于原文件名生成新文件名
-                base_name = self.image_name.rsplit('.', 1)[0]
-                base_name = base_name[:15] if len(base_name) > 15 else base_name
-                # 清理文件名
+                base_name = self.image_name.rsplit('.', 1)[0][:15]
                 base_name = base_name.replace(" ", "_").replace('"', "").replace("$", "")
                 desired_name = f"{base_name}_exported.png"
             else:
-                # 使用时间戳生成唯一文件名
                 import time
-                timestamp = int(time.time())
-                desired_name = f"image_export_{timestamp}.png"
+                desired_name = f"image_export_{int(time.time())}.png"
             
             # 保存到媒体文件夹
             new_name = mw.col.media.write_data(desired_name, png_binary)
             
             # 更新编辑器中的图像
             if not self.create_new:
-                # 替换现有图像
                 if self.replaceAll.checkState() == Qt.CheckState.Checked:
-                    # 替换所有相同的图像
                     self.replace_all_img_src_modern(self.image_name, new_name)
                 else:
-                    # 只替换当前选中的图像
-                    img_el_b64 = base64.b64encode(new_name.encode()).decode()
-                    change_src_script = f"addonAnno.changeSrc('{img_el_b64}');"
-                    self.editor_wv.eval(change_src_script)
+                    self.replace_img_src_webview(new_name)
             else:
-                # 插入新图像
-                img_el = f'"<img src=\\"{new_name}\\">"'
-                write_image_script = f"document.execCommand('inserthtml', false, {img_el});"
-                self.editor_wv.eval(write_image_script)
+                self.editor_wv.eval(f'document.execCommand("inserthtml", false, "<img src=\\"{new_name}\\">");')
             
-            # 显示成功消息
             tooltip(f"PNG 图像已保存: {new_name}")
-            
-            # 关闭编辑器
             self.close_queued = True
             self.close()
             
