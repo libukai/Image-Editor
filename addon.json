@@ -1,0 +1,13 @@
+{
+  "display_name": "Anki Image Editor",
+  "module_name": "anki_image_editor",
+  "repo_name": "anki-image-editor",
+  "author": "xiaobuyao",
+  "description": "An Anki add-on that enhances your flashcard experience.",
+  "conflicts": [],
+  "targets": [
+    "qt6"
+  ],
+  "ankiweb_id": "",
+  "contact": "xiaobuyao@gmail.com"
+}

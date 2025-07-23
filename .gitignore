@@ -1,8 +1,35 @@
-*/meta.json
-bin/
+# Build output
+build/
+dist/
+*.ankiaddon
 
-.code-workspace
-.log
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+.env
+
+# uv
+.venv/
+
+# IDEs
 .vscode/
-*~
-*.pyc
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# aadt specific
+.aadt/
+
+# vaildator
+.mypy_cache
+.ruff_cache
