@@ -1,48 +1,17 @@
-from anki.collection import Collection, OpChanges
-from aqt import gui_hooks, mw
-from aqt.operations import CollectionOp
-from aqt.utils import showInfo, showWarning
+from anki import version
 
-
-def setup_addon() -> None:
-    """Standard AADT entry point."""
-    # Menu integration
-    action = mw.form.menuTools.addAction("My Addon")
-    if action is not None:
-        action.triggered.connect(main_function)
-
-    # Hook integration
-    gui_hooks.state_did_change.append(on_state_change)
-    gui_hooks.operation_did_execute.append(on_operation_done)
-
-
-def main_function() -> None:
-    """Main addon functionality."""
-    if not mw.col:
-        showWarning("Please open a profile first")
-        return
-
-    # Use modern operation pattern
-    def process_collection(col: Collection) -> OpChanges:
-        # Your logic here
-        # return col.some_operation()
-        showInfo("Addon function called!")
-        return OpChanges()
-
-    CollectionOp(parent=mw, op=process_collection).success(
-        lambda changes: showInfo("Operation completed!")
-    ).run_in_background()
-
-
-def on_state_change(new_state: str, old_state: str) -> None:
-    """Handle state changes."""
+# Anki 25.6+ version requirement check
+try:
+    major, minor, patch = version.split(".")[:3]
+    version_tuple = (int(major), int(minor), int(patch))
+    
+    # Require Anki 25.6+ for modern API support
+    if version_tuple < (25, 6, 0):
+        raise Exception(f"This addon requires Anki 25.6+. Current version: {version}")
+        
+except ValueError:
+    # Allow development/beta versions to proceed
     pass
 
-
-def on_operation_done(changes: OpChanges, initiator: object) -> None:
-    """Handle operation completion."""
-    pass
-
-
-# Auto-execution
-setup_addon()
+# Import the main module to initialize the addon
+from . import editor  # noqa: F401
