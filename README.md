@@ -6,275 +6,135 @@
 
 ## English
 
-An Anki add-on created with [Anki Add-on Developer Tools (AADT)](https://github.com/libukai/aadt).
+A powerful image editor add-on for Anki that allows you to draw, annotate, and edit images directly within your flashcards.
 
-### Description
+### Features
 
-TODO: Add description of your add-on here.
+- 🎨 **Built-in Vector Editor** - Powered by Method Draw, a modern SVG editor
+- ✏️ **Drawing Tools** - Pencil, shapes, text, and more
+- 🖼️ **Image Annotation** - Add annotations to existing images in your cards
+- 📐 **Professional Tools** - Layers, alignment, transformations
+- 💾 **Seamless Integration** - Save edits directly back to your Anki notes
+- 🎯 **Right-click Edit** - Simply right-click any image to start editing
 
 ### Installation
 
 #### From AnkiWeb
 
-TODO: Add AnkiWeb installation instructions when published.
+1. Open Anki and go to Tools → Add-ons → Get Add-ons
+2. Enter the add-on code: `[TBD - will be added after AnkiWeb publication]`
+3. Restart Anki
 
 #### Manual Installation
 
-1. Download the latest release from GitHub
+1. Download the latest release from [GitHub Releases](https://github.com/xiaobuyao/anki-image-editor/releases)
 2. In Anki, go to Tools → Add-ons → Install from file
-3. Select the downloaded .ankiaddon file
+3. Select the downloaded `.ankiaddon` file
+4. Restart Anki
 
-### Development
+### Usage
 
-This project uses [AADT](https://github.com/libukai/aadt) for modern Anki add-on development with Qt6 support.
+#### Creating New Images
+1. In the card editor, click the "Draw Image" button in the toolbar
+2. Create your drawing using the vector editor
+3. Click "Save" to insert the image into your card
 
-#### Quick Start
+#### Editing Existing Images
+1. Right-click any image in the editor
+2. Select "Edit Image" from the context menu
+3. Make your changes and click "Save"
 
-```bash
-# Create a new add-on project (using uvx - recommended)
-mkdir anki-image-editor && cd anki-image-editor
-uvx aadt init
+#### Keyboard Shortcuts
+- `Ctrl+Shift+I` (Windows/Linux) or `Cmd+Shift+I` (Mac) - Create new drawing
+- `Ctrl+S` / `Cmd+S` - Save current drawing
 
-# Dependencies are automatically installed during init
-# Includes: Anki/AQT, MyPy, Ruff, Pytest, and AADT
-# Plus all required template architecture
+### Compatibility
 
-# Start developing!
-uv run aadt test
-```
+- Anki 25.06+ (Qt6)
+- Windows, macOS, Linux
 
-#### Development Workflow
+### Troubleshooting
 
-```bash
-# Initial setup (one-time)
-uvx aadt init                    # Initialize project with all dependencies
-
-# Daily development (use local aadt)
-uv run aadt ui                   # Compile UI files
-uv run aadt test                 # Test with Anki
-uv run aadt build                # Build add-on
-```
-
-#### Dependencies
-
-This project uses a single `dev` group containing all development dependencies:
-
-```bash
-# Install/update all development dependencies
-uv sync --group dev
-
-# Includes:
-# - aqt>=25.2.7                 # Anki Qt interface (includes anki, pyqt6, and all UI dependencies)
-# - aadt>=1.1.0                 # Build tools (includes additional PyQt6 for UI compilation)
-# - mypy>=1.16.1                # Static type checking
-# - ruff>=0.12.1                # Fast linting and formatting
-# - pytest>=8.0.0               # Testing framework
-```
-
-**Note:** `aqt` automatically includes `anki` and `pyqt6` dependencies. AADT provides additional PyQt6 for UI compilation tools.
-
-#### Building
-
-```bash
-# Build (defaults to local testing)
-uv run aadt build
-
-# Or explicitly specify build target
-uv run aadt build -d local       # Local testing
-uv run aadt build -d ankiweb     # AnkiWeb submission
-```
-
-#### Testing
-
-```bash
-# Test with Anki (automatically links and launches)
-uv run aadt test
-
-# Or manually manage linking
-uv run aadt link              # Create development link
-uv run aadt link --unlink     # Remove development link
-
-# Run unit tests (if available)
-uv run pytest
-```
-
-**Development Testing:**
-- `aadt test` automatically links your add-on and launches Anki
-- `aadt link` creates a symbolic link from your source to Anki's addon directory
-- Supports macOS, Windows (junction), and Linux
-- `aadt link --unlink` removes the development link when finished
-- Your changes are immediately available in Anki without manual copying
-
-#### Code Quality
-
-```bash
-# Check code style and types
-uv run ruff check .              # Linting
-uv run ruff format .             # Auto-formatting
-uv run mypy src/                 # Type checking
-```
-
-#### Project Structure
-
-- `src/anki_image_editor/` - Main Python package (src-layout)
-  - `__init__.py` - Add-on entry point and main functionality
-- `ui/designer/` - Qt Designer .ui files
-- `ui/resources/` - UI resources (icons, styles, etc.)
-- `addon.json` - Add-on configuration
-- `pyproject.toml` - Project configuration and dependencies
-- `.python-version` - Python version specification
-
-### Features
-
-- **Modern Python 3.13+** with type hints
-- **Qt6 only** - no legacy Qt5 support
-- **src-layout** - best practice project structure
-- **uv-based** - fast dependency management
-- **Comprehensive tooling** - MyPy, Ruff, Pytest included
-- **Direct resource paths** - no QRC compilation needed
+If you encounter any issues:
+1. Ensure you're using Anki 25.06 or later
+2. Check that no other image editing add-ons are conflicting
+3. Report issues on [GitHub Issues](https://github.com/xiaobuyao/anki-image-editor/issues)
 
 ### License
 
-TODO: Add license information.
+MIT License - see [LICENSE](LICENSE) file for details
 
-### Author
+### Credits
 
-xiaobuyao
+- Built with [Method Draw](https://github.com/methodofaction/Method-Draw) - A web-based SVG editor
+- Created using [AADT](https://github.com/libukai/aadt) - Anki Add-on Developer Tools
 
 ---
 
 ## 中文
 
-本项目是使用 [Anki Add-on Developer Tools (AADT)](https://github.com/libukai/aadt) 创建的 Anki 插件。
+一个强大的 Anki 图像编辑插件，让您可以直接在卡片中绘制、标注和编辑图像。
 
-### 描述
+### 功能特点
 
-TODO: 在此添加插件的详细描述。
+- 🎨 **内置矢量编辑器** - 基于 Method Draw 现代 SVG 编辑器
+- ✏️ **绘图工具** - 画笔、形状、文字等
+- 🖼️ **图像标注** - 为卡片中的现有图像添加标注
+- 📐 **专业工具** - 图层、对齐、变换功能
+- 💾 **无缝集成** - 直接保存编辑结果到 Anki 笔记
+- 🎯 **右键编辑** - 只需右键点击任何图像即可开始编辑
 
-### 安装
+### 安装方法
 
 #### 从 AnkiWeb 安装
 
-TODO: 插件发布后添加 AnkiWeb 安装说明。
+1. 打开 Anki，前往 工具 → 插件 → 获取插件
+2. 输入插件代码：`[待定 - AnkiWeb 发布后添加]`
+3. 重启 Anki
 
 #### 手动安装
 
-1. 从 GitHub 下载最新版本
-2. 在 Anki 中，转到 工具 → 插件 → 从文件安装
-3. 选择下载的 .ankiaddon 文件
+1. 从 [GitHub Releases](https://github.com/xiaobuyao/anki-image-editor/releases) 下载最新版本
+2. 在 Anki 中，前往 工具 → 插件 → 从文件安装
+3. 选择下载的 `.ankiaddon` 文件
+4. 重启 Anki
 
-### 开发
+### 使用方法
 
-本项目使用 [AADT](https://github.com/libukai/aadt) 进行现代化的 Anki 插件开发，支持 Qt6。
+#### 创建新图像
+1. 在卡片编辑器中，点击工具栏中的"绘制图像"按钮
+2. 使用矢量编辑器创建您的绘图
+3. 点击"保存"将图像插入到卡片中
 
-#### 快速开始
+#### 编辑现有图像
+1. 右键点击编辑器中的任何图像
+2. 从上下文菜单中选择"编辑图像"
+3. 进行修改后点击"保存"
 
-```bash
-# 创建新的插件项目（推荐使用 uvx）
-mkdir anki-image-editor && cd anki-image-editor
-uvx aadt init
+#### 快捷键
+- `Ctrl+Shift+I` (Windows/Linux) 或 `Cmd+Shift+I` (Mac) - 创建新绘图
+- `Ctrl+S` / `Cmd+S` - 保存当前绘图
 
-# 依赖会在初始化时自动安装
-# 包括：Anki/AQT、MyPy、Ruff、Pytest 和 AADT
-# 以及配置所需要的模板架构
+### 兼容性
 
-# 开始开发！
-uv run aadt test
-```
+- Anki 25.06+（Qt6）
+- Windows、macOS、Linux
 
-#### 开发工作流
+### 问题排查
 
-```bash
-# 初始设置（一次性）
-uvx aadt init                    # 初始化项目并安装所有依赖
-
-# 日常开发（使用本地 aadt）
-uv run aadt ui                   # 编译 UI 文件
-uv run aadt test                 # 在 Anki 中测试
-uv run aadt build                # 构建插件
-```
-
-#### 依赖管理
-
-本项目使用单一的 `dev` 组管理所有开发依赖：
-
-```bash
-# 安装/更新所有开发依赖
-uv sync --group dev
-
-# 包含的依赖：
-# - aqt>=25.2.7                 # Anki Qt 界面（包含 anki、pyqt6 和所有界面依赖）
-# - aadt>=1.1.0                 # 构建工具（包含额外的 PyQt6 用于 UI 编译）
-# - mypy>=1.16.1                # 静态类型检查
-# - ruff>=0.12.1                # 快速代码检查和格式化
-# - pytest>=8.0.0               # 测试框架
-```
-
-**注意：** `aqt` 自动包含 `anki` 和 `pyqt6` 依赖。AADT 提供额外的 PyQt6 用于 UI 编译工具。
-
-#### 构建
-
-```bash
-# 构建（默认为本地测试版本）
-uv run aadt build
-
-# 或显式指定构建目标
-uv run aadt build -d local       # 本地测试版本
-uv run aadt build -d ankiweb     # AnkiWeb 提交版本
-```
-
-#### 测试
-
-```bash
-# 测试插件（自动链接并启动 Anki）
-uv run aadt test
-
-# 或手动管理链接
-uv run aadt link              # 从源码创建符号链接到 Anki 插件目录
-uv run aadt link --unlink     # 从 Anki 插件目录移除
-
-# 运行单元测试（如果有）
-uv run pytest
-```
-
-**开发测试说明：**
-- `aadt test` 自动链接你的插件并启动 Anki
-- `aadt link` 从源代码目录创建符号链接到 Anki 插件目录
-- 支持 macOS、Windows（junction）和 Linux
-- `aadt link --unlink` 在完成后移除开发链接
-- 你的更改会立即在 Anki 中生效，无需手动复制
-
-#### 代码质量
-
-```bash
-# 检查代码风格和类型
-uv run ruff check .              # 代码检查
-uv run ruff format .             # 自动格式化
-uv run mypy src/                 # 类型检查
-```
-
-#### 项目结构
-
-- `src/anki_image_editor/` - 主 Python 包（src-layout 结构）
-  - `__init__.py` - 插件入口点和主要功能
-- `ui/designer/` - Qt Designer .ui 文件
-- `ui/resources/` - UI 资源文件（图标、样式等）
-- `addon.json` - 插件配置文件
-- `pyproject.toml` - 项目配置和依赖
-- `.python-version` - Python 版本规范
-
-### 特性
-
-- **现代 Python 3.13+** 支持类型提示
-- **仅支持 Qt6** - 不包含 Qt5 遗留代码
-- **src-layout 结构** - 最佳实践项目布局
-- **基于 uv** - 快速依赖管理
-- **完整工具链** - 包含 MyPy、Ruff、Pytest
-- **直接资源路径** - 无需 QRC 编译
+如果遇到任何问题：
+1. 确保您使用的是 Anki 25.06 或更高版本
+2. 检查是否有其他图像编辑插件冲突
+3. 在 [GitHub Issues](https://github.com/xiaobuyao/anki-image-editor/issues) 报告问题
 
 ### 许可证
 
-TODO: 添加许可证信息。
+MIT 许可证 - 详见 [LICENSE](LICENSE) 文件
+
+### 致谢
+
+- 基于 [Method Draw](https://github.com/methodofaction/Method-Draw) - 网页版 SVG 编辑器
+- 使用 [AADT](https://github.com/libukai/aadt) 创建 - Anki 插件开发工具
 
 ### 作者
 
