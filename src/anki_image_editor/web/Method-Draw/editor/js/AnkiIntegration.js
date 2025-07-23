@@ -64,6 +64,12 @@ MD.AnkiIntegration = function() {
      * 设置 Anki 相关的绑定
      */
     this.setupAnkiBindings = function() {
+        // 先清空画布，确保从干净状态开始
+        if (svgCanvas && typeof svgCanvas.clear === 'function') {
+            svgCanvas.clear();
+            this.log("Canvas cleared on initialization");
+        }
+        
         // 请求初始图像
         pycmd("img_src");
         
@@ -84,6 +90,10 @@ MD.AnkiIntegration = function() {
      * @param {string} type - 图像类型（"svg" 或其他）
      */
     this.setImage = function(data, type) {
+        // 清空画布，移除所有现有内容
+        this.log("Clearing canvas before loading new image");
+        svgCanvas.clear();
+        
         if (type === "svg") {
             // 直接加载 SVG 字符串
             svgCanvas.setSvgString(data);
@@ -99,7 +109,8 @@ MD.AnkiIntegration = function() {
      */
     this.setRasterImage = function(data) {
         const setImageDimensions = (imgWidth, imgHeight) => {
-            // 设置画布尺寸
+            // 清空并设置画布尺寸
+            svgCanvas.clear();
             svgCanvas.setResolution(imgWidth, imgHeight);
             $("#canvas_width").val(imgWidth);
             $("#canvas_height").val(imgHeight);
