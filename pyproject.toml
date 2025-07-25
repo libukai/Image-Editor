@@ -19,6 +19,7 @@ dev = [
     "mypy>=1.16.1",
     "ruff>=0.12.1",
     "pytest>=8.0.0",
+    "aadt",
 ]
 
 [build-system]
@@ -63,3 +64,6 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
 ignore_missing_imports = true
+
+[tool.uv.sources]
+aadt = { path = "../Anki-addon-dev-toolkit", editable = true }
